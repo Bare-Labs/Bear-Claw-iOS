@@ -70,9 +70,9 @@ Goal: native iPhone chat client + secure session handling.
 
 ### Deliverables
 - [ ] iOS app project with environments (dev/staging/prod)
-- [ ] Keychain-backed token storage
+- [x] Keychain-backed token storage
 - [ ] Chat transcript view + quick actions
-- [ ] Error recovery UX (session expired, offline retry)
+- [x] Error recovery UX (session expired, offline retry baseline)
 
 ### Exit Criteria
 - [ ] Full parity with Phase 1 web chat
@@ -173,6 +173,16 @@ Goal: stable, secure consumer-grade release.
 5. Connect `web-mvp` chat UI to real endpoint with token auth.
 6. Add sensitive action confirmation contract (`requires_confirmation`).
 7. Run external-network end-to-end test from mobile network.
+
+## Remote Secure Access MVP Progress (2026-03-06)
+- [x] Keep `POST /v1/chat` request/response transport
+- [x] Keep Bearer token header support in `BearClawClient`
+- [x] Move auth token persistence from `UserDefaults` to Keychain
+- [x] Enforce HTTPS for non-localhost gateway URLs
+- [x] Improve user-facing errors for unauthorized/network timeout/unreachable gateway
+- [x] Add tests for auth header and secure URL validation policy
+- [x] Add copy/paste pairing payload import (`JSON` and `tardi1:` format)
+- [x] Add certificate fingerprint pinning for TLS trust
 
 ## Current Starter Assets in This Repo
 - Swift package core models/client in `Sources/PandaCore/` (legacy module path)

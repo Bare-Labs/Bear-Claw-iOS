@@ -25,8 +25,43 @@ final class ChatViewModel: ObservableObject {
             messages.append(response)
             errorText = nil
         } catch {
-            errorText = "Message failed. Check auth/session and try again."
+            errorText = userFacingError(error)
         }
+    }
+
+    private func userFacingError(_ error: Error) -> String {
+        if let clientError = error as? BearClawClientError {
+            switch clientError {
+            case .unauthorized:
+                return "Unauthorized. Update your bearer token in Settings."
+            case let .apiError(code, message, _):
+                switch code {
+                case .upstreamTimeout:
+                    return "Gateway timed out. Try again."
+                case .rateLimited:
+                    return "Rate limited. Wait a moment and retry."
+                default:
+                    return "Request failed: \(message)"
+                }
+            case .serverError:
+                return "Gateway error. Try again shortly."
+            case .invalidResponse:
+                return "Gateway returned an invalid response."
+            }
+        }
+
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet:
+                return "No internet connection."
+            case .timedOut:
+                return "Network timeout. Try again."
+            default:
+                return "Network request failed."
+            }
+        }
+
+        return "Message failed. Check gateway URL and token in Settings."
     }
 }
 

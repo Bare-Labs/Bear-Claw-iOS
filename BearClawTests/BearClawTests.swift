@@ -32,6 +32,7 @@ struct BearClawTests {
         await MockURLProtocolStore.shared.setHandler { request in
             #expect(request.httpMethod == "POST")
             #expect(request.url?.absoluteString == "https://example.com/v1/chat")
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-123")
 
             let sent = try JSONDecoder().decode(ChatRequest.self, from: try bodyData(from: request))
             #expect(sent.message == "hello")
@@ -83,6 +84,52 @@ struct BearClawTests {
         )) {
             _ = try await client.sendMessage("hello")
         }
+    }
+
+    @Test func appSettingsStoreRequiresSecureRemoteURL() async throws {
+        let suiteName = "BearClawTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let tokenStore = InMemoryTokenStore()
+        let settings = AppSettingsStore(defaults: defaults, tokenStore: tokenStore)
+
+        settings.apiBaseURL = "http://example.com"
+        #expect(!settings.isConfigured)
+
+        settings.apiBaseURL = "https://example.com"
+        #expect(settings.isConfigured)
+
+        settings.authToken = "secret"
+        #expect(tokenStore.readToken() == "secret")
+    }
+
+    @Test func pairingPayloadJSONParses() throws {
+        let payload = """
+        {"endpoint":"https://198.51.100.10:8069","bearer_token":"abc123","cert_sha256":"AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"}
+        """
+        let parsed = try parseTardiPairingPayload(payload)
+        #expect(parsed.endpoint == "https://198.51.100.10:8069")
+        #expect(parsed.bearerToken == "abc123")
+        #expect(parsed.certSHA256 == "aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899")
+    }
+
+    @Test func appSettingsStoreAppliesPairingPayload() throws {
+        let suiteName = "BearClawTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let tokenStore = InMemoryTokenStore()
+        let settings = AppSettingsStore(defaults: defaults, tokenStore: tokenStore)
+        try settings.applyPairingPayload("""
+        {"endpoint":"https://203.0.113.44:8069","bearer_token":"tok-value","cert_sha256":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}
+        """)
+
+        #expect(settings.apiBaseURL == "https://203.0.113.44:8069")
+        #expect(settings.authToken == "tok-value")
+        #expect(settings.pinnedCertFingerprint == "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+        #expect(tokenStore.readToken() == "tok-value")
+        #expect(settings.isConfigured)
     }
 }
 
@@ -157,4 +204,16 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     override func stopLoading() {}
+}
+
+private final class InMemoryTokenStore: AuthTokenStore {
+    private var token: String?
+
+    func readToken() -> String? {
+        token
+    }
+
+    func writeToken(_ token: String?) {
+        self.token = token
+    }
 }
