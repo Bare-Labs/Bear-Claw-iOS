@@ -51,6 +51,7 @@ Goal: from anywhere (e.g., downtown), securely chat with BearClaw at home.
   - [ ] request validation
   - [ ] tool routing
   - [ ] structured logging + audit events
+- [ ] Client/server parity integration test harness for `v1/chat` request/response and error envelopes
 - [ ] Basic ops dashboard (latency, failed commands, tool errors)
 
 ### Exit Criteria
