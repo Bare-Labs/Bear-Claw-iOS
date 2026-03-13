@@ -14,25 +14,31 @@ struct SettingsView: View {
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
                         .keyboardType(.URL)
+                        .accessibilityIdentifier("settings.apiBaseURL")
                     SecureField("Bearer token", text: $settings.authToken)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
+                        .accessibilityIdentifier("settings.authToken")
                     TextField("Pinned cert SHA256", text: $settings.pinnedCertFingerprint)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
+                        .accessibilityIdentifier("settings.pinnedCertFingerprint")
                 }
 
                 Section("Pairing") {
                     TextField("Paste pairing JSON or tardi1: code", text: $pairingInput, axis: .vertical)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
+                        .accessibilityIdentifier("settings.pairingInput")
                     Button("Import Pairing Payload") {
                         importPairing()
                     }
+                    .accessibilityIdentifier("settings.importPairingButton")
                     if let pairingStatus {
                         Text(pairingStatus)
                             .font(.footnote)
                             .foregroundStyle(pairingStatusIsError ? .red : .green)
+                            .accessibilityIdentifier("settings.pairingStatus")
                     }
                 }
 
@@ -42,6 +48,7 @@ struct SettingsView: View {
                         Text("Use HTTPS for remote gateways. HTTP is only allowed for localhost.")
                             .font(.footnote)
                             .foregroundStyle(.orange)
+                            .accessibilityIdentifier("settings.gatewayWarning")
                     }
                 }
             }

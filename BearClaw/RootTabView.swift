@@ -4,12 +4,11 @@ struct RootTabView: View {
     @StateObject private var settings: AppSettingsStore
     @StateObject private var chatViewModel: ChatViewModel
 
-    init() {
-        let settings = AppSettingsStore()
-        _settings = StateObject(wrappedValue: settings)
-        _chatViewModel = StateObject(
-            wrappedValue: ChatViewModel(clientProvider: { settings.makeClient() })
-        )
+    init(settings: AppSettingsStore? = nil, chatViewModel: ChatViewModel? = nil) {
+        let resolvedSettings = settings ?? AppLaunch.makeSettingsStore()
+        let resolvedViewModel = chatViewModel ?? ChatViewModel(clientProvider: { resolvedSettings.makeClient() })
+        _settings = StateObject(wrappedValue: resolvedSettings)
+        _chatViewModel = StateObject(wrappedValue: resolvedViewModel)
     }
 
     var body: some View {

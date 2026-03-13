@@ -7,6 +7,18 @@ protocol AuthTokenStore {
     func writeToken(_ token: String?)
 }
 
+final class InMemoryAuthTokenStore: AuthTokenStore {
+    private var token: String?
+
+    func readToken() -> String? {
+        token
+    }
+
+    func writeToken(_ token: String?) {
+        self.token = token
+    }
+}
+
 final class KeychainAuthTokenStore: AuthTokenStore {
     private let service = "com.barelabs.bearclaw"
     private let account = "bearclaw.authToken"
@@ -108,6 +120,12 @@ final class AppSettingsStore: ObservableObject {
         apiBaseURL = payload.endpoint
         authToken = payload.bearerToken
         pinnedCertFingerprint = payload.certSHA256
+    }
+
+    func reset() {
+        apiBaseURL = ""
+        authToken = ""
+        pinnedCertFingerprint = ""
     }
 
     private var validatedBaseURL: URL? {

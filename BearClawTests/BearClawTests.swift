@@ -131,6 +131,47 @@ struct BearClawTests {
         #expect(tokenStore.readToken() == "tok-value")
         #expect(settings.isConfigured)
     }
+
+    @Test func appSettingsStoreResetClearsPersistedFields() {
+        let suiteName = "BearClawTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let tokenStore = InMemoryAuthTokenStore()
+        let settings = AppSettingsStore(defaults: defaults, tokenStore: tokenStore)
+        settings.apiBaseURL = "https://example.com"
+        settings.authToken = "secret"
+        settings.pinnedCertFingerprint = String(repeating: "a", count: 64)
+
+        settings.reset()
+
+        #expect(settings.apiBaseURL.isEmpty)
+        #expect(settings.authToken.isEmpty)
+        #expect(settings.pinnedCertFingerprint.isEmpty)
+        #expect(tokenStore.readToken() == nil)
+    }
+
+    @Test func appLaunchBuildsSettingsFromUITestEnvironment() {
+        let suiteName = "BearClawTests-\(UUID().uuidString)"
+        let payload = """
+        {"endpoint":"https://127.0.0.1:8443","bearer_token":"tok-live","cert_sha256":"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}
+        """
+
+        let settings = AppLaunch.makeSettingsStore(environment: [
+            AppLaunch.userDefaultsSuiteKey: suiteName,
+            AppLaunch.inMemoryTokenStoreKey: "1",
+            AppLaunch.resetStateKey: "1",
+            AppLaunch.pairingPayloadKey: payload,
+        ])
+        defer {
+            UserDefaults(suiteName: suiteName)?.removePersistentDomain(forName: suiteName)
+        }
+
+        #expect(settings.apiBaseURL == "https://127.0.0.1:8443")
+        #expect(settings.authToken == "tok-live")
+        #expect(settings.pinnedCertFingerprint == "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+        #expect(settings.isConfigured)
+    }
 }
 
 private func makeMockSession() -> URLSession {

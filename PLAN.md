@@ -29,6 +29,20 @@ BearClaw iOS (or simply iOS) is the unified iPhone control plane for your home B
 - Immutable audit log for prompts, tool calls, and side effects
 - Rate limits, IP anomaly detection, and replay protection
 
+## Direct Tardigrade Edge Alignment
+Goal: ensure the shipping mobile path talks to Tardigrade as the real HTTPS edge in front of BearClaw.
+
+### Scope
+- [x] Pairing payload import for `endpoint`, `bearer_token`, and `cert_sha256`
+- [x] TLS certificate fingerprint pinning
+- [ ] Validate against a real Tardigrade-hosted HTTPS deployment instead of a placeholder or sidecar-terminated edge
+- [ ] Add clearer user-facing recovery for cert mismatch, cert rotation, and invalid bearer token cases
+- [ ] Document self-signed pinned-cert pairing versus publicly trusted certificate pairing
+
+### Exit Criteria
+- [ ] A fresh app install can pair from the BearClaw-generated payload and connect to a direct Tardigrade HTTPS edge
+- [ ] TLS trust failures and auth failures are distinguishable in user-facing diagnostics
+
 ## Phase 1 MVP (Web Chat over Public Internet)
 Goal: from anywhere (e.g., downtown), securely chat with BearClaw at home.
 
